@@ -8,7 +8,7 @@ O objetivo desta tarefa é a pratica de algortimos em grafos. Para isso deverão
 
 A segunda tarefa consiste em utilizar os conhecimentos adquiridos com os algoritmos de busca em largura e profundidade para realizar um algoritmo que indica se um grafo é ou não uma árvore
 
-- [ ] Checa se é árvore
+- [x] Checa se é árvore
 
 Utilize o programa `gerador.c` para gerar novos grafos. A partir do terminal, com o arquivo compilado digite:
 
