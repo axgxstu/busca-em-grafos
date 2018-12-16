@@ -1,0 +1,229 @@
+#include <stdio.h>
+
+void imprime_matriz(unsigned int n, unsigned int X[n][n])
+{
+	int i,j;
+	for (i = 0; i < n; i++)
+	{
+		for (j = 0; j < n; j++)
+		{
+			printf("%d\t", X[i][j]);
+		}
+		printf("\n");
+	}
+}
+
+void matriz_de_arquivo(unsigned int n, unsigned int adjacencias[n][n], char* caminho)
+{
+	int i, j;
+	
+	FILE *f;
+  	f = fopen(caminho, "r");
+	
+	for (i = 0; i < n; ++i)
+	{
+		for (j = 0; j < n; j++)
+		{
+			if (!fscanf(f, "%d", &adjacencias[i][j])) 
+           		break;
+		}	
+	}
+
+	fclose(f);
+
+}
+
+void push(unsigned int n, unsigned int* cabeca, unsigned int* cauda, unsigned int fila[n], unsigned int valor)
+{
+	// caso da fila cheia
+	if ( (*cauda - *cabeca) == (n - 1) )
+	{
+		printf("Fila cheia!\n");
+	} else
+	{
+		// caso da fila vazia
+		if (*cabeca > *cauda)
+		{
+			*cabeca = 0;
+			*cauda = 0;
+		} else 
+		{
+			*cauda = *cauda + 1;		
+		}
+		fila[*cauda % n] = valor;
+	}
+	
+}
+
+int pop(unsigned int n, unsigned int* cabeca, unsigned int* cauda, unsigned int fila[n])
+{
+	unsigned int retorno;
+	
+	if (*cabeca > *cauda)
+	{
+		printf("Fila vazia!\n");
+		return -1;
+	}
+	
+	retorno = fila[*cabeca % n];
+	*cabeca = *cabeca + 1;
+	return retorno;
+}
+
+void busca_em_largura(unsigned int n, unsigned int adjacencias[n][n], unsigned int raiz)
+{
+	unsigned int enfileirado[n];
+	unsigned int i, atual;
+	unsigned int cabeca = 0;
+	unsigned int cauda = -1;
+	unsigned int fila[n];
+	
+	for (i = 0; i < n; i++)
+	{
+		enfileirado[i] = 0;
+	}
+
+	push(n, &cabeca, &cauda, fila, raiz);
+	enfileirado[raiz] = 1;
+	
+	// enquanto existem elementos na fila
+	while ((atual = pop(n, &cabeca, &cauda, fila)) != -1)
+	{
+		// imprime o elemento atual
+		printf("%d\t", atual);
+		
+		for (i = 0; i < n; i++)
+		{
+			// se i possui uma aresta e ainda nao foi enfileirado, adicione na fila e marque como enfileirado
+			if (adjacencias[i][atual] > 0 && enfileirado[i] == 0)
+			{
+				push(n, &cabeca, &cauda, fila, i);
+				enfileirado[i] = 1;
+			}
+		}
+	}
+}
+
+void busca_em_profundidade(unsigned int n, unsigned int adjacencias[n][n], unsigned int raiz, unsigned int visitado[n])
+{
+	unsigned int i;
+
+	printf("%d\t", raiz);
+	visitado[raiz] = 1;
+
+	for (i = 0; i < n; i++)
+	{
+		// se i possui uma aresta e ainda nao foi visitado, visite
+		if (adjacencias[i][raiz] > 0 && visitado[i] == 0)
+		{
+			busca_em_profundidade(n, adjacencias, i, visitado);
+		}
+	}
+	
+}
+unsigned int verifica_ciclo(unsigned int n, unsigned int adjacencias[n][n], unsigned int anc[n], int raiz)
+{
+	unsigned int conta_cic = 0;
+	unsigned int i = 0;
+
+	for(i; i < n; i++) {
+
+		if (adjacencias[i][raiz] > 0){
+
+			if (anc[i] == -1){
+				
+      			anc[i] = raiz;
+			 	conta_cic += verifica_ciclo(n, adjacencias, anc, i);
+			 	
+			}
+
+			else{
+				
+     			 if (anc[raiz] != i){
+     			 	
+					conta_cic+= 1;
+					
+				}
+
+			}
+			
+		}
+		
+	}
+
+	return conta_cic;
+}
+
+unsigned int verifica_conexao(unsigned int n, unsigned int anc[n]){
+
+	unsigned int conta_conx = 0;
+	unsigned int i = 0;
+
+	for (i; i < n; i++){
+		if (anc[i] == -1){
+			
+			conta_conx += 0;
+			
+		}
+		else{
+			
+			conta_conx +=1;
+			
+		}
+		
+	}
+	return conta_conx;
+}
+
+unsigned int verifica_arvore(unsigned int n, unsigned int adjacencias[n][n], unsigned int raiz)
+{
+	
+	int anc[n];
+	unsigned int a, b;
+	unsigned int i = 0;
+	
+
+	for (i; i < n; i++){
+		anc[i] = -1;
+	}
+
+	anc[raiz] = raiz;
+	a = verifica_ciclo(n, adjacencias, anc, raiz);
+	b = verifica_conexao(n, anc);
+
+	if ((a == 0) && (b == 1)){
+		return 1;
+	}
+	else{
+		return 0;
+	}
+}
+
+int main()
+{
+	
+	unsigned int n = 5;
+	unsigned int adjacencias[n][n];
+	unsigned int visitado[n];
+	unsigned int i;
+
+	for (i = 0; i < n; i++)
+		visitado[i] = 0;
+	
+	matriz_de_arquivo(n, adjacencias, "instancia1.txt");
+	
+	imprime_matriz(n, adjacencias);
+	
+	printf("\nBusca em largura: ");
+	busca_em_largura(n, adjacencias, 3);
+	
+	printf("\nBusca em profundidade: ");
+	busca_em_profundidade(n, adjacencias, 3, visitado);
+	
+	if (verifica_arvore(n, adjacencias, 3))
+		printf("\n\nO grafo e uma arvore\n");
+	else
+		printf("\n\nO grafo nao e uma arvore\n");
+	return 0;
+}
+
